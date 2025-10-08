@@ -1,51 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Table, Alert, Spinner } from 'react-bootstrap';
-import config from './config';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Container, Table, Alert, Spinner, Form, Row, Col, Button } from 'react-bootstrap';
+import { fetchFileData, setSelectedFileName, clearError } from './store/filesSlice';
 
 const App = () => {
-  const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const {
+    filesData,
+    selectedFileName,
+    loading,
+    error,
+    dataLoading,
+    dataError
+  } = useSelector((state) => state.files);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${config.apiUrl}/files/data`);
+    dispatch(fetchFileData());
+  }, [dispatch]);
 
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
+  const handleFileFilter = () => {
+    dispatch(fetchFileData(selectedFileName));
+  };
 
-        const data = await response.json();
+  const handleClearFilter = () => {
+    dispatch(setSelectedFileName(''));
+    dispatch(fetchFileData(''));
+  };
 
-        const allLines = [];
-        data.files.forEach(file => {
-          if (file.lines && file.lines.length > 0) {
-            file.lines.forEach(line => {
-              allLines.push({
-                fileName: file.file,
-                text: line.text,
-                number: line.number,
-                hex: line.hex
-              });
-            });
-          }
-        });
+  const handleFileNameChange = (e) => {
+    dispatch(setSelectedFileName(e.target.value));
+  };
 
-        setFiles(allLines);
-        setError(null);
-      } catch (err) {
-        console.error('Error al obtener los datos:', err);
-        setError(`Error al obtener los datos: ${err.message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const transformedData = filesData?.files ? filesData.files.flatMap(file =>
+    file.lines?.map(line => ({
+      fileName: file.file,
+      text: line.text,
+      number: line.number,
+      hex: line.hex
+    })) || []
+  ) : [];
 
-    fetchData();
-  }, []);
-
+  const filesList = filesData?.files ? filesData.files.filter(file => file.lines?.length > 0).map(file => file.file) : [];
   return (
     <div style={{ backgroundColor: '#ff6b6b', minHeight: '100vh', padding: 0 }}>
       <div style={{
@@ -60,20 +55,69 @@ const App = () => {
       </div>
 
       <Container fluid style={{ padding: '20px', backgroundColor: 'white', margin: 0 }}>
+        <Row className="mb-4">
+          <Col md={8}>
+            <Form.Group>
+              <Form.Select
+                value={selectedFileName}
+                onChange={handleFileNameChange}
+                disabled={loading}
+              >
+                <option value="">Todos los archivos</option>
+                {filesList?.map((file, index) => (
+                  <option key={index} value={file}>
+                    {file}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+          <Col md={4} className="d-flex align-items-end">
+            <Button
+              variant="primary"
+              onClick={handleFileFilter}
+              disabled={dataLoading}
+              className="me-2"
+            >
+              {dataLoading ? 'Cargando...' : 'Aplicar filtro'}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleClearFilter}
+              disabled={dataLoading}
+            >
+              Limpiar filtro
+            </Button>
+          </Col>
+        </Row>
+
         {loading && (
           <div className="text-center">
             <Spinner animation="border" />
+            <p className="mt-2">Cargando lista...</p>
+          </div>
+        )}
+
+        {dataLoading && (
+          <div className="text-center">
+            <Spinner animation="border" variant="primary" />
             <p className="mt-2">Cargando datos...</p>
           </div>
         )}
 
         {error && (
-          <Alert variant="danger">
-            {error}
+          <Alert variant="danger" dismissible onClose={() => dispatch(clearError())}>
+            <strong>Error:</strong> {error}
           </Alert>
         )}
 
-        {!loading && !error && (
+        {dataError && (
+          <Alert variant="warning" dismissible onClose={() => dispatch(clearError())}>
+            <strong>Error:</strong> {dataError}
+          </Alert>
+        )}
+
+        {!loading && !dataLoading && (
           <Table striped bordered hover size="sm">
             <thead style={{ backgroundColor: '#f8f9fa' }}>
               <tr>
@@ -84,7 +128,7 @@ const App = () => {
               </tr>
             </thead>
             <tbody>
-              {files.map((item, index) => (
+              {transformedData.map((item, index) => (
                 <tr key={index}>
                   <td>{item.fileName}</td>
                   <td>{item.text}</td>
@@ -92,10 +136,10 @@ const App = () => {
                   <td>{item.hex}</td>
                 </tr>
               ))}
-              {files.length === 0 && (
+              {transformedData.length === 0 && !dataLoading && (
                 <tr>
                   <td colSpan="4" className="text-center text-muted">
-                    No hay datos disponibles
+                    {selectedFileName ? 'No data found for selected file' : 'No data available'}
                   </td>
                 </tr>
               )}
