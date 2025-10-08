@@ -1,8 +1,10 @@
 # Code Challenge
 
-Una aplicación full-stack que procesa archivos CSV desde una API externa y los muestra en una interfaz web React.
+Una aplicación full-stack que procesa archivos CSV desde una API externa y los muestra en una interfaz web React, con la capacidad de obtener los datos por archivo.
 
 ![Screenshot](screenshot.png)
+![](opcionales1.png)
+![](opcionales2.png)
 
 ## Inicio Rápido con Docker
 
@@ -18,7 +20,7 @@ docker-compose up --build
 - Backend: http://localhost:3001
 
 
-## 🛠️ Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
 ### Backend
 - **Node.js 14** - Runtime de JavaScript
