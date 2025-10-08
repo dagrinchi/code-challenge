@@ -31,6 +31,7 @@ docker-compose up --build
 ### Frontend
 - **React.js** - Librería de UI
 - **React Bootstrap** - Componentes de interfaz
+- **Redux** - Manejador de estado
 - **Webpack** - Bundler y dev server
 - **ES6+** - JavaScript moderno
 
@@ -92,4 +93,4 @@ docker system prune -f
 
 ---
 
-**Desarrollado por Wilson David Alméciga usando Node.js 16, React y Docker**
+**Desarrollado por Wilson David Alméciga usando Node.js, Express, React y Docker**
