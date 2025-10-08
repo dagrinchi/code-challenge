@@ -47,7 +47,7 @@ describe('endpoints', () => {
         .get('/no-existe')
         .end((err, res) => {
           expect(res).to.have.status(404);
-          expect(res.body).to.have.property('error', 'route not found');
+          expect(res.body).to.have.property('error', 'Route not found');
           expect(res.body).to.have.property('path', '/no-existe');
           done();
         });
