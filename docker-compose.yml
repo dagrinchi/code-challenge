@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    container_name: code-challenge-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+    container_name: code-challenge-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Development services (optional)
+  backend-dev:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    container_name: code-challenge-backend-dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./packages/backend:/app/packages/backend
+      - /app/packages/backend/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+    command: npm run dev --workspace=packages/backend
+    networks:
+      - app-network
+    restart: unless-stopped
+    profiles:
+      - dev
+
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+      target: builder
+    container_name: code-challenge-frontend-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./packages/frontend:/app/packages/frontend
+      - /app/packages/frontend/node_modules
+    command: npm run dev --workspace=packages/frontend
+    depends_on:
+      - backend-dev
+    networks:
+      - app-network
+    restart: unless-stopped
+    profiles:
+      - dev
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  node_modules_backend:
+  node_modules_frontend:
