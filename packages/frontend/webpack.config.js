@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
@@ -43,7 +44,12 @@ module.exports = (env, argv) => {
     plugins: [
       new HtmlWebpackPlugin({
         template: './public/index.html',
-        title: 'Code Challenge App'
+      }),
+      new webpack.DefinePlugin({
+        'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development'),
+        'process.env.REACT_APP_API_URL': JSON.stringify(
+          process.env.REACT_APP_API_URL || (isProduction ? '' : 'http://localhost:3001')
+        )
       })
     ],
     devServer: {
@@ -57,6 +63,14 @@ module.exports = (env, argv) => {
       historyApiFallback: true,
       proxy: {
         '/api': {
+          target: 'http://localhost:3001',
+          changeOrigin: true
+        },
+        '/files': {
+          target: 'http://localhost:3001',
+          changeOrigin: true
+        },
+        '/health': {
           target: 'http://localhost:3001',
           changeOrigin: true
         }

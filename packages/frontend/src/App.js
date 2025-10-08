@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Table, Alert, Spinner } from 'react-bootstrap';
+import config from './config';
 
 const App = () => {
   const [files, setFiles] = useState([]);
@@ -10,7 +11,7 @@ const App = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3001/files/data');
+        const response = await fetch(`${config.apiUrl}/files/data`);
 
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
